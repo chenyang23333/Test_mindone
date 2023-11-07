@@ -22,6 +22,7 @@ import mindspore.ops as ops
 # from gm.helpers import create_model
 # from gm.helpers import  create_model_for_controlnet as load_model
 from omegaconf import OmegaConf
+from inference.libs.logger import set_logger
 
 MODE = {
     "canny": "canny",

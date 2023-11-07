@@ -9,7 +9,7 @@ import sys
 
 import cv2
 import numpy as np
-from cldm.ddim_hacked import DDIMSampler
+# from cldm.ddim_hacked import DDIMSampler
 from cldm.model import create_model, load_model
 from conditions.canny.canny_detector import CannyDetector
 from conditions.segmentation.segment_detector import SegmentDetector
@@ -23,6 +23,7 @@ import mindspore.ops as ops
 # from gm.helpers import  create_model_for_controlnet as load_model
 from omegaconf import OmegaConf
 from inference.libs.logger import set_logger
+from gm.modules.diffusionmodules.sampler import DPMPP2SAncestralSampler
 
 MODE = {
     "canny": "canny",
@@ -75,7 +76,7 @@ def main(args):
     else:
         logger.error(f"input image file {args.input_image} not exists")
 
-    sampler = DDIMSampler(model)
+    sampler = DPMPP2SAncestralSampler(model)
     image_resolution = args.image_resolution  # 256~768
 
     num_samples = args.n_samples  # 1~12
@@ -159,8 +160,18 @@ def main(args):
     )  # Magic number. IDK why. Perhaps because 0.825**12<0.01 but 0.826**12>0.01
 
     logger.info("Start inference")
-    samples, intermediates = sampler.sample(
-        ddim_steps,
+    # samples, intermediates = sampler.sample(
+    #     ddim_steps,
+    #     num_samples,
+    #     shape,
+    #     cond,
+    #     verbose=False,
+    #     eta=eta,
+    #     unconditional_guidance_scale=scale,
+    #     unconditional_conditioning=un_cond,
+    # ) # intermediates 这个参数没有用到
+
+    samples = sampler.sample(
         num_samples,
         shape,
         cond,
@@ -168,7 +179,8 @@ def main(args):
         eta=eta,
         unconditional_guidance_scale=scale,
         unconditional_conditioning=un_cond,
-    )
+    ) # intermediates 这个参数没有用到
+
 
     def decode_and_save_result(args, samples, detected_map, outpath, filename):
         x_samples = model.decode_first_stage(samples)
